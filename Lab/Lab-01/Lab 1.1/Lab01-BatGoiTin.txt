@@ -1,0 +1,4 @@
+B1: Kiem tra IP
+B2: Bat dich vu telnet tren Server và dat password administrator/123
+B3: Cai Wireshark tren may attacker
+B4: Client ket noi voi server thong qua dich vu telnet - Attacker bat goi tin va lay dc password

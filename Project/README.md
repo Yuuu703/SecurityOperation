@@ -1,0 +1,2 @@
+This is the project about learning the MITRE-ATT&CK techniques. Me and my friend choose to use Caldera cause it has a lots of prebuilt commands. In this project I did the Scenario 2 and Scenario 3, so I have included the setup and my demo for 2 scenarios in this repository.
+Link to my demo: https://drive.google.com/drive/folders/1ISA2DWlA_wRqYdW-b68eh6myOM_I_Jfp?usp=drive_link

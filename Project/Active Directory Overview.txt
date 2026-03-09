@@ -1,0 +1,47 @@
+Active Directory Overview
+
+Active Directory (AD) is a centralized directory service developed by Microsoft and widely used in enterprise Windows environments to manage identities, authentication, authorization, and resources. It provides a structured and hierarchical database that stores information about objects such as users, computers, groups, and services within a domain. By centralizing identity management, Active Directory enables administrators to enforce security policies, control access to resources, and apply configuration settings consistently across the entire organization. At the core of Active Directory is the Domain Controller (DC), which hosts the directory database and handles authentication requests for all domain-joined devices.
+
+Role of DNS in Active Directory
+
+Active Directory is tightly coupled with the Domain Name System (DNS). Unlike traditional networks where DNS is optional, AD cannot function properly without DNS. Domain Controllers register multiple service records (SRV records) in DNS, which allow clients to locate critical services such as LDAP and Kerberos. When a client attempts to authenticate or query the directory, it first uses DNS to discover the Domain Controller responsible for the domain. This dependency explains why, in both real environments and lab setups, attackers and administrators must correctly configure DNS resolution toward the DC in order to interact with Active Directory services.
+
+Core Protocols in Active Directory: LDAP and Kerberos
+
+Active Directory relies primarily on two protocols: LDAP and Kerberos. LDAP (Lightweight Directory Access Protocol) is used to query and manage directory objects. It allows users and applications to retrieve information such as usernames, group memberships, organizational units, and service accounts. LDAP itself does not provide secure authentication by default; instead, it is commonly paired with Kerberos for authentication.
+
+Kerberos, on the other hand, is the default authentication protocol in modern Active Directory environments. It is designed to provide strong mutual authentication without transmitting plaintext passwords over the network. Kerberos operates using cryptographic tickets and symmetric keys derived from user passwords, which significantly reduces the risk of credential interception during authentication.
+
+Kerberos Authentication Architecture
+
+The Kerberos authentication system is built around a trusted third party known as the Key Distribution Center (KDC), which resides on the Domain Controller. The KDC consists of two logical components: the Authentication Service (AS) and the Ticket Granting Service (TGS). When a user logs in, the client first communicates with the Authentication Service to request a Ticket Granting Ticket (TGT). This TGT is later used to obtain service tickets from the TGS, allowing access to specific resources such as file servers or applications without re-entering credentials.
+
+This ticket-based architecture enables Kerberos to achieve single sign-on (SSO), meaning that once authenticated, the user can access multiple services without repeatedly providing a password.
+
+Kerberos Pre-Authentication Mechanism
+
+A critical security feature in Kerberos is pre-authentication. During pre-authentication, the client must prove knowledge of the user’s password before the KDC issues a TGT. This is typically done by encrypting a timestamp with a key derived from the user’s password and sending it to the Authentication Service. If the KDC can successfully decrypt the timestamp, it confirms that the client knows the correct password and proceeds to issue the TGT.
+
+Pre-authentication is designed to protect Kerberos from offline password guessing attacks and user enumeration. Without this mechanism, an attacker could request authentication responses for arbitrary usernames and attempt to crack them offline.
+
+The DONT_REQUIRE_PREAUTH Account Setting
+
+In Active Directory, the DONT_REQUIRE_PREAUTH flag is an account-level configuration that disables Kerberos pre-authentication for a specific user. When this flag is enabled, the Domain Controller no longer requires the client to prove knowledge of the password before responding to an authentication request. As a result, the KDC will return an AS-REP message directly, even if the requester does not possess the user’s password.
+
+This setting exists primarily for legacy compatibility reasons, such as supporting older systems or applications that do not implement Kerberos pre-authentication correctly. However, in modern environments, leaving this option enabled introduces a significant security risk and violates best practices.
+
+AS-REP and Its Cryptographic Weakness
+
+The AS-REP (Authentication Service Reply) message contains data encrypted using a key derived from the user’s password hash. Under normal circumstances, this message is only sent after successful pre-authentication. However, when pre-authentication is disabled, the AS-REP is sent unconditionally. This creates a scenario where an attacker can obtain cryptographic material that is directly dependent on the user’s password without any prior authentication.
+
+Because the encryption key is derived from the password, the attacker can perform offline brute-force or dictionary attacks against the AS-REP. This means the attacker does not interact with the Domain Controller during the cracking process, making the attack both stealthy and difficult to detect.
+
+AS-REP Roasting Attack Explained
+
+AS-REP Roasting is a Kerberos-based attack technique that targets accounts with pre-authentication disabled. The attacker first enumerates valid usernames within the domain and then requests AS-REP responses for those users. For accounts with the DONT_REQUIRE_PREAUTH flag set, the Domain Controller responds with an AS-REP encrypted using the user’s password-derived key.
+
+The attacker then extracts the encrypted data and attempts to crack it offline using password lists or brute-force techniques. If successful, the attacker recovers the user’s plaintext password or its equivalent cryptographic representation. This attack does not trigger account lockouts and generates minimal logs, making it highly effective for initial access in Active Directory environments.
+
+Security Impact in Real-World Environments
+
+AS-REP Roasting is particularly dangerous because it requires no valid credentials and no interaction beyond standard Kerberos requests. In real enterprise environments, service accounts and legacy users are often misconfigured with pre-authentication disabled, providing attackers with a low-effort, high-impact attack vector. Once a password is recovered, it can be leveraged for lateral movement, privilege escalation, or further credential harvesting techniques such as Kerberoasting or Pass-the-Hash.
