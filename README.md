@@ -7,6 +7,7 @@ In this course, I learned core security concepts and completed hands-on labs in:
 - VPN setup and testing
 - Information gathering and vulnerability scanning
 - Firewall configuration
+- HIDS configuration
 - Proxy configuration
 - DCHP starving and spoofing
 
