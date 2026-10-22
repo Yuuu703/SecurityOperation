@@ -1,4 +1,4 @@
-# Cybersecurity Operations Course Repository
+# Cybersecurity Operations 
 
 This repository contains my learning work for the Security Operations course.
 
